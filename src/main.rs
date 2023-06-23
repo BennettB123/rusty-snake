@@ -1,35 +1,34 @@
-use macroquad::{
-    color, input, prelude::get_frame_time, prelude::Color, shapes, telemetry::frame, window,
-};
+use macroquad::{color, input, prelude::get_frame_time, prelude::Color, shapes, window};
 
-const SCREEN_WIDTH: i32 = 750;
-const SCREEN_HEIGHT: i32 = 750;
-const NUM_COLUMNS: i32 = 25;
-const NUM_ROWS: i32 = 25;
+const SCREEN_WIDTH: i32 = 1500;
+const SCREEN_HEIGHT: i32 = 1500;
+const NUM_COLUMNS: i32 = 10;
+const NUM_ROWS: i32 = 10;
 
-const MAX_FPS: f32 = 30.0;
-const SNAKE_SPEED: f32 = 1.0; // number of snake moves per second
+const SNAKE_SPEED: f32 = 5.0; // moves per second
 
 #[macroquad::main(get_window_conf())]
 async fn main() {
-    let mut my_snake = Snake::new();
-    let mut frame_count: u128 = 0;
+    ///// CREATE GAME STATE /////
+    let mut snake = Snake::new();
+    let mut snake_move_progress: f32 = 0.0;
 
-    while !input::is_key_down(input::KeyCode::Escape) {
+    while !exit_requested() {
         window::clear_background(color::BLACK);
 
-        // update game state
-        if frame_count % (MAX_FPS / SNAKE_SPEED) as u128 == 0 {
-            my_snake.update();
+        ///// UPDATE GAME STATE /////
+
+        // limit snake movement based on frame rate
+        snake_move_progress = snake_move_progress + (get_frame_time() * SNAKE_SPEED);
+        if snake_move_progress >= 1.0 {
+            snake.update();
+            snake_move_progress = 1.0 - snake_move_progress;
         }
 
-        // draw game state
-        my_snake.draw();
+        ///// DRAW GAME STATE /////
+        snake.draw();
 
         window::next_frame().await;
-        frame_count += 1;
-
-        limit_frame_rate();
     }
 }
 
@@ -44,19 +43,8 @@ fn get_window_conf() -> window::Conf {
     }
 }
 
-// TODO: This limiter is rough. It results in some frames being very short and others being very long.
-//       Smooth this out!
-fn limit_frame_rate() {
-    let minimum_frame_time = 1. / MAX_FPS;
-    let frame_time = get_frame_time();
-    println!();
-    println!("frame_time: {}", frame_time);
-    println!("FPS: {}", macroquad::time::get_fps());
-
-    if frame_time < minimum_frame_time {
-        let time_to_sleep = (minimum_frame_time - frame_time) * 1000.;
-        std::thread::sleep(std::time::Duration::from_millis(time_to_sleep as u64));
-    }
+fn exit_requested() -> bool {
+    input::is_key_down(input::KeyCode::Escape) || input::is_key_down(input::KeyCode::Q)
 }
 
 enum Direction {
@@ -81,6 +69,10 @@ impl Snake {
             y: 0,
             direction: Direction::Right,
         }
+    }
+
+    fn change_direction(&mut self, new_dir: Direction) {
+        self.direction = new_dir;
     }
 
     fn update(&mut self) {
