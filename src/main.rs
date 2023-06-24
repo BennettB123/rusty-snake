@@ -7,6 +7,9 @@ use global_state::GlobalState;
 mod snake;
 use snake::{Direction, Snake};
 
+mod fruit;
+use fruit::Fruit;
+
 const GLOBAL_STATE: GlobalState = GlobalState {
     game_name: "Rusty Snake",
     screen_width: 1500,
@@ -32,6 +35,9 @@ async fn main() {
     let mut snake = Snake::new();
     let mut snake_move_progress: f32 = 0.0;
 
+    let mut fruit = Fruit::new();
+
+    ///// ENTER MAIN GAME LOOP /////
     while !exit_requested() {
         clear_background(BLACK);
 
@@ -60,8 +66,15 @@ async fn main() {
             snake_move_progress = 1.0 - snake_move_progress;
         }
 
+        // check for collisions
+        if did_snake_eat(&snake, &fruit) {
+            //snake.grow();
+            fruit.teleport();
+        }
+
         ///// DRAW GAME STATE /////
         snake.draw();
+        fruit.draw();
 
         next_frame().await;
     }
@@ -79,4 +92,9 @@ fn get_window_conf() -> Conf {
 
 fn exit_requested() -> bool {
     is_key_down(KeyCode::Escape) || is_key_down(KeyCode::Q)
+}
+
+fn did_snake_eat(snake: &Snake, fruit: &Fruit) -> bool {
+    let snake_head = snake.get_head();
+    snake_head.x == fruit.x && snake_head.y == fruit.y
 }

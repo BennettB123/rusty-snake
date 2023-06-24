@@ -22,59 +22,18 @@ impl Direction {
     }
 }
 
-pub struct Snake {
-    x: i32,
-    y: i32,
-    direction: Direction,
+#[derive(Clone, Copy)]
+pub struct SnakeLink {
+    pub x: i32,
+    pub y: i32,
 }
 
-impl Snake {
-    const COLOR: Color = LIME;
-
-    pub fn new() -> Self {
-        Snake {
-            x: 0,
-            y: 0,
-            direction: Direction::Right,
-        }
+impl SnakeLink {
+    fn new(x: i32, y: i32) -> SnakeLink {
+        SnakeLink { x, y }
     }
 
-    pub fn change_direction(&mut self, new_dir: Direction) {
-        if !new_dir.is_opposite(&self.direction) {
-            self.direction = new_dir;
-        }
-    }
-
-    pub fn update(&mut self) {
-        match self.direction {
-            Direction::Up => {
-                self.y -= 1;
-                if self.y < 0 {
-                    self.y = storage::get::<GlobalState>().num_rows - 1;
-                }
-            }
-            Direction::Down => {
-                self.y += 1;
-                if self.y >= storage::get::<GlobalState>().num_rows {
-                    self.y = 0;
-                }
-            }
-            Direction::Left => {
-                self.x -= 1;
-                if self.x < 0 {
-                    self.x = storage::get::<GlobalState>().num_columns - 1;
-                }
-            }
-            Direction::Right => {
-                self.x += 1;
-                if self.x >= storage::get::<GlobalState>().num_columns {
-                    self.x = 0;
-                }
-            }
-        }
-    }
-
-    pub fn draw(&self) {
+    fn draw(&self) {
         let screen_width = screen_width();
         let screen_height = screen_height();
 
@@ -87,5 +46,66 @@ impl Snake {
         let draw_height: f32 = screen_height / storage::get::<GlobalState>().num_rows as f32;
 
         draw_rectangle(draw_x, draw_y, draw_width, draw_height, Snake::COLOR);
+    }
+}
+
+pub struct Snake {
+    links: Vec<SnakeLink>,
+    direction: Direction,
+}
+
+impl Snake {
+    const COLOR: Color = GREEN;
+
+    pub fn new() -> Self {
+        Snake {
+            links: vec![SnakeLink::new(0, 0)],
+            direction: Direction::Right,
+        }
+    }
+
+    pub fn get_head(&self) -> SnakeLink {
+        self.links[0]
+    }
+
+    pub fn change_direction(&mut self, new_dir: Direction) {
+        if !new_dir.is_opposite(&self.direction) {
+            self.direction = new_dir;
+        }
+    }
+
+    pub fn update(&mut self) {
+        match self.direction {
+            Direction::Up => {
+                self.links[0].y -= 1;
+                if self.links[0].y < 0 {
+                    self.links[0].y = storage::get::<GlobalState>().num_rows - 1;
+                }
+            }
+            Direction::Down => {
+                self.links[0].y += 1;
+                if self.links[0].y >= storage::get::<GlobalState>().num_rows {
+                    self.links[0].y = 0;
+                }
+            }
+            Direction::Left => {
+                self.links[0].x -= 1;
+                if self.links[0].x < 0 {
+                    self.links[0].x = storage::get::<GlobalState>().num_columns - 1;
+                }
+            }
+            Direction::Right => {
+                self.links[0].x += 1;
+                if self.links[0].x >= storage::get::<GlobalState>().num_columns {
+                    self.links[0].x = 0;
+                }
+            }
+        }
+    }
+
+    pub fn draw(&self) {
+        for link in &self.links {
+            link.draw();
+        }
     }
 }
