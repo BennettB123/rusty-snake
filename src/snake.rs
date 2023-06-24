@@ -1,5 +1,6 @@
 use macroquad::experimental::collections::storage;
 use macroquad::prelude::*;
+use std::collections::VecDeque;
 
 use crate::global_state::GlobalState;
 
@@ -50,8 +51,9 @@ impl SnakeLink {
 }
 
 pub struct Snake {
-    links: Vec<SnakeLink>,
+    links: VecDeque<SnakeLink>,
     direction: Direction,
+    needs_to_grow: bool,
 }
 
 impl Snake {
@@ -59,8 +61,9 @@ impl Snake {
 
     pub fn new() -> Self {
         Snake {
-            links: vec![SnakeLink::new(0, 0)],
+            links: VecDeque::from([SnakeLink::new(0, 0)]),
             direction: Direction::Right,
+            needs_to_grow: false,
         }
     }
 
@@ -74,33 +77,50 @@ impl Snake {
         }
     }
 
+    pub fn grow(&mut self) {
+        self.needs_to_grow = true;
+    }
+
+    // moves the snake by pushing the new head location to the font of self.links
+    //   and popping the tail off the back. Do not pop the tail off the back if
+    //   the snake needs to grow
     pub fn update(&mut self) {
+        // find new head location
+        let mut new_head = SnakeLink::new(self.links[0].x, self.links[0].y);
         match self.direction {
             Direction::Up => {
-                self.links[0].y -= 1;
-                if self.links[0].y < 0 {
-                    self.links[0].y = storage::get::<GlobalState>().num_rows - 1;
+                new_head.y -= 1;
+                if new_head.y < 0 {
+                    new_head.y = storage::get::<GlobalState>().num_rows - 1;
                 }
             }
             Direction::Down => {
-                self.links[0].y += 1;
-                if self.links[0].y >= storage::get::<GlobalState>().num_rows {
-                    self.links[0].y = 0;
+                new_head.y += 1;
+                if new_head.y >= storage::get::<GlobalState>().num_rows {
+                    new_head.y = 0;
                 }
             }
             Direction::Left => {
-                self.links[0].x -= 1;
-                if self.links[0].x < 0 {
-                    self.links[0].x = storage::get::<GlobalState>().num_columns - 1;
+                new_head.x -= 1;
+                if new_head.x < 0 {
+                    new_head.x = storage::get::<GlobalState>().num_columns - 1;
                 }
             }
             Direction::Right => {
-                self.links[0].x += 1;
-                if self.links[0].x >= storage::get::<GlobalState>().num_columns {
-                    self.links[0].x = 0;
+                new_head.x += 1;
+                if new_head.x >= storage::get::<GlobalState>().num_columns {
+                    new_head.x = 0;
                 }
             }
         }
+
+        self.links.push_front(new_head);
+
+        // pop tail off if we aren't growing
+        if !self.needs_to_grow {
+            self.links.pop_back();
+        }
+        self.needs_to_grow = false;
     }
 
     pub fn draw(&self) {

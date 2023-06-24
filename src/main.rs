@@ -31,48 +31,54 @@ async fn main() {
     // store this in macroquads global storage so it can be used across modules
     storage::store(GLOBAL_STATE);
 
-    ///// CREATE GAME STATE /////
+    let mut last_key_pressed: Option<KeyCode> = Option::None;
     let mut snake = Snake::new();
-    let mut snake_move_progress: f32 = 0.0;
+    let mut snake_move_progress: f32 = 0.0; // keep's snake's movement constant regardless of FPS.
+                                            // snake moves when this gets to 1.0
 
     let mut fruit = Fruit::new();
 
-    ///// ENTER MAIN GAME LOOP /////
     while !exit_requested() {
         clear_background(BLACK);
 
-        ///// UPDATE GAME STATE /////
-        // consume user input
-        let last_key = get_last_key_pressed();
-        match last_key {
+        // get last_key_pressed
+        match get_last_key_pressed() {
             None => (),
-            Some(key) => {
-                if UP_KEYS.contains(&key) {
-                    snake.change_direction(Direction::Up);
-                } else if DOWN_KEYS.contains(&key) {
-                    snake.change_direction(Direction::Down);
-                } else if LEFT_KEYS.contains(&key) {
-                    snake.change_direction(Direction::Left);
-                } else if RIGHT_KEYS.contains(&key) {
-                    snake.change_direction(Direction::Right);
-                }
-            }
+            Some(key) => last_key_pressed = Some(key),
         }
 
         // limit snake movement based on frame rate
         snake_move_progress = snake_move_progress + (get_frame_time() * SNAKE_SPEED);
         if snake_move_progress >= 1.0 {
+            // consume user input
+            match last_key_pressed {
+                None => (),
+                Some(key) => {
+                    if UP_KEYS.contains(&key) {
+                        snake.change_direction(Direction::Up);
+                    } else if DOWN_KEYS.contains(&key) {
+                        snake.change_direction(Direction::Down);
+                    } else if LEFT_KEYS.contains(&key) {
+                        snake.change_direction(Direction::Left);
+                    } else if RIGHT_KEYS.contains(&key) {
+                        snake.change_direction(Direction::Right);
+                    }
+
+                    last_key_pressed = None;
+                }
+            }
+
             snake.update();
             snake_move_progress = 1.0 - snake_move_progress;
         }
 
         // check for collisions
         if did_snake_eat(&snake, &fruit) {
-            //snake.grow();
+            snake.grow();
             fruit.teleport();
         }
 
-        ///// DRAW GAME STATE /////
+        // draw all elements
         snake.draw();
         fruit.draw();
 
