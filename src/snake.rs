@@ -35,18 +35,17 @@ impl SnakeLink {
     }
 
     fn draw(&self) {
-        let screen_width = screen_width();
-        let screen_height = screen_height();
+        let cell_width: f32 = screen_width() / storage::get::<GlobalState>().num_columns as f32;
+        let cell_height: f32 = screen_height() / storage::get::<GlobalState>().num_rows as f32;
+        let padding_w = storage::get::<GlobalState>().draw_grid_padding * screen_width();
+        let padding_h = storage::get::<GlobalState>().draw_grid_padding * screen_height();
 
-        let draw_x: f32 =
-            (screen_width / storage::get::<GlobalState>().num_columns as f32) * self.x as f32;
-        let draw_y: f32 =
-            (screen_height / storage::get::<GlobalState>().num_rows as f32) * self.y as f32;
+        let draw_x: f32 = cell_width * self.x as f32 + padding_w;
+        let draw_y: f32 = cell_height * self.y as f32 + padding_h;
+        let draw_w: f32 = cell_width - (padding_w * 2.0);
+        let draw_h: f32 = cell_height - (padding_h * 2.0);
 
-        let draw_width: f32 = screen_width / storage::get::<GlobalState>().num_columns as f32;
-        let draw_height: f32 = screen_height / storage::get::<GlobalState>().num_rows as f32;
-
-        draw_rectangle(draw_x, draw_y, draw_width, draw_height, Snake::COLOR);
+        draw_rectangle(draw_x, draw_y, draw_w, draw_h, Snake::COLOR);
     }
 }
 
@@ -67,7 +66,7 @@ impl Snake {
         }
     }
 
-    pub fn get_head(&self) -> SnakeLink {
+    pub fn get_head_link(&self) -> SnakeLink {
         self.links[0]
     }
 
@@ -121,6 +120,18 @@ impl Snake {
             self.links.pop_back();
         }
         self.needs_to_grow = false;
+    }
+
+    pub fn did_eat_self(&self) -> bool {
+        let head = self.links[0];
+
+        for link in self.links.iter().skip(1) {
+            if head.x == link.x && head.y == link.y {
+                return true;
+            }
+        }
+
+        false
     }
 
     pub fn draw(&self) {

@@ -1,8 +1,13 @@
+use std::process::exit;
+
 use macroquad::experimental::collections::storage;
 use macroquad::prelude::*;
 
 mod global_state;
 use global_state::GlobalState;
+
+mod input_buffer;
+use input_buffer::InputBuffer;
 
 mod snake;
 use snake::{Direction, Snake};
@@ -14,8 +19,9 @@ const GLOBAL_STATE: GlobalState = GlobalState {
     game_name: "Rusty Snake",
     screen_width: 1500,
     screen_height: 1500,
-    num_columns: 25,
-    num_rows: 25,
+    num_columns: 15,
+    num_rows: 15,
+    draw_grid_padding: 0.005,
 };
 
 const SNAKE_SPEED: f32 = 10.0; // moves per second
@@ -31,7 +37,7 @@ async fn main() {
     // store this in macroquads global storage so it can be used across modules
     storage::store(GLOBAL_STATE);
 
-    let mut last_key_pressed: Option<KeyCode> = Option::None;
+    let mut input_buffer = InputBuffer::new(5);
     let mut snake = Snake::new();
     let mut snake_move_progress: f32 = 0.0; // keep's snake's movement constant regardless of FPS.
                                             // snake moves when this gets to 1.0
@@ -44,14 +50,14 @@ async fn main() {
         // get last_key_pressed
         match get_last_key_pressed() {
             None => (),
-            Some(key) => last_key_pressed = Some(key),
+            Some(key) => input_buffer.add_key(key),
         }
 
         // limit snake movement based on frame rate
         snake_move_progress = snake_move_progress + (get_frame_time() * SNAKE_SPEED);
         if snake_move_progress >= 1.0 {
             // consume user input
-            match last_key_pressed {
+            match input_buffer.get_key() {
                 None => (),
                 Some(key) => {
                     if UP_KEYS.contains(&key) {
@@ -63,24 +69,27 @@ async fn main() {
                     } else if RIGHT_KEYS.contains(&key) {
                         snake.change_direction(Direction::Right);
                     }
-
-                    last_key_pressed = None;
                 }
             }
 
             snake.update();
             snake_move_progress = 1.0 - snake_move_progress;
-        }
 
-        // check for collisions
-        if did_snake_eat(&snake, &fruit) {
-            snake.grow();
-            fruit.teleport();
+            // check for collisions
+            if snake.did_eat_self() {
+                exit(0); // TODO: losing screen + restart
+            }
+
+            if did_snake_eat_fruit(&snake, &fruit) {
+                snake.grow();
+                fruit.teleport();
+            }
         }
 
         // draw all elements
-        snake.draw();
+        draw_grid_lines();
         fruit.draw();
+        snake.draw();
 
         next_frame().await;
     }
@@ -100,7 +109,9 @@ fn exit_requested() -> bool {
     is_key_down(KeyCode::Escape) || is_key_down(KeyCode::Q)
 }
 
-fn did_snake_eat(snake: &Snake, fruit: &Fruit) -> bool {
-    let snake_head = snake.get_head();
+fn did_snake_eat_fruit(snake: &Snake, fruit: &Fruit) -> bool {
+    let snake_head = snake.get_head_link();
     snake_head.x == fruit.x && snake_head.y == fruit.y
 }
+
+fn draw_grid_lines() {}
