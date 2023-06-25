@@ -3,17 +3,16 @@ use std::process::exit;
 use macroquad::experimental::collections::storage;
 use macroquad::prelude::*;
 
-mod global_state;
-use global_state::GlobalState;
-
-mod input_buffer;
-use input_buffer::InputBuffer;
-
-mod snake;
-use snake::{Direction, Snake};
-
+mod cell;
 mod fruit;
+mod global_state;
+mod input_buffer;
+mod snake;
+
 use fruit::Fruit;
+use global_state::GlobalState;
+use input_buffer::InputBuffer;
+use snake::{Direction, Snake};
 
 const GLOBAL_STATE: GlobalState = GlobalState {
     game_name: "Rusty Snake",
@@ -110,8 +109,8 @@ fn exit_requested() -> bool {
 }
 
 fn did_snake_eat_fruit(snake: &Snake, fruit: &Fruit) -> bool {
-    let snake_head = snake.get_head_link();
-    snake_head.x == fruit.x && snake_head.y == fruit.y
+    let snake_head = snake.get_head_location();
+    snake_head.x == fruit.location.x && snake_head.y == fruit.location.y
 }
 
 fn draw_grid_lines() {}

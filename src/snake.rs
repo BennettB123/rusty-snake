@@ -2,6 +2,7 @@ use macroquad::experimental::collections::storage;
 use macroquad::prelude::*;
 use std::collections::VecDeque;
 
+use crate::cell::Cell;
 use crate::global_state::GlobalState;
 
 #[derive(PartialEq)]
@@ -23,34 +24,8 @@ impl Direction {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct SnakeLink {
-    pub x: i32,
-    pub y: i32,
-}
-
-impl SnakeLink {
-    fn new(x: i32, y: i32) -> SnakeLink {
-        SnakeLink { x, y }
-    }
-
-    fn draw(&self) {
-        let cell_width: f32 = screen_width() / storage::get::<GlobalState>().num_columns as f32;
-        let cell_height: f32 = screen_height() / storage::get::<GlobalState>().num_rows as f32;
-        let padding_w = storage::get::<GlobalState>().draw_grid_padding * screen_width();
-        let padding_h = storage::get::<GlobalState>().draw_grid_padding * screen_height();
-
-        let draw_x: f32 = cell_width * self.x as f32 + padding_w;
-        let draw_y: f32 = cell_height * self.y as f32 + padding_h;
-        let draw_w: f32 = cell_width - (padding_w * 2.0);
-        let draw_h: f32 = cell_height - (padding_h * 2.0);
-
-        draw_rectangle(draw_x, draw_y, draw_w, draw_h, Snake::COLOR);
-    }
-}
-
 pub struct Snake {
-    links: VecDeque<SnakeLink>,
+    links: VecDeque<Cell>,
     direction: Direction,
     needs_to_grow: bool,
 }
@@ -60,13 +35,13 @@ impl Snake {
 
     pub fn new() -> Self {
         Snake {
-            links: VecDeque::from([SnakeLink::new(0, 0)]),
+            links: VecDeque::from([Cell::new(0, 0)]),
             direction: Direction::Right,
             needs_to_grow: false,
         }
     }
 
-    pub fn get_head_link(&self) -> SnakeLink {
+    pub fn get_head_location(&self) -> Cell {
         self.links[0]
     }
 
@@ -85,7 +60,7 @@ impl Snake {
     //   the snake needs to grow
     pub fn update(&mut self) {
         // find new head location
-        let mut new_head = SnakeLink::new(self.links[0].x, self.links[0].y);
+        let mut new_head = Cell::new(self.links[0].x, self.links[0].y);
         match self.direction {
             Direction::Up => {
                 new_head.y -= 1;
@@ -136,7 +111,7 @@ impl Snake {
 
     pub fn draw(&self) {
         for link in &self.links {
-            link.draw();
+            link.draw(Snake::COLOR);
         }
     }
 }
