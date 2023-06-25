@@ -1,7 +1,6 @@
 use macroquad::input::KeyCode;
 use std::collections::VecDeque;
 
-// TODO: use max_size. Do we want to remove oldest, or newest???
 pub struct InputBuffer {
     inputs: VecDeque<KeyCode>,
     max_size: usize,
@@ -16,6 +15,9 @@ impl InputBuffer {
     }
 
     pub fn add_key(&mut self, key: KeyCode) {
+        if self.inputs.len() >= self.max_size {
+            self.inputs.pop_back();
+        }
         self.inputs.push_front(key);
     }
 
