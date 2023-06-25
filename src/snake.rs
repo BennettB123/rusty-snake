@@ -62,30 +62,10 @@ impl Snake {
         // find new head location
         let mut new_head = Cell::new(self.links[0].x, self.links[0].y);
         match self.direction {
-            Direction::Up => {
-                new_head.y -= 1;
-                if new_head.y < 0 {
-                    new_head.y = storage::get::<GlobalState>().num_rows - 1;
-                }
-            }
-            Direction::Down => {
-                new_head.y += 1;
-                if new_head.y >= storage::get::<GlobalState>().num_rows {
-                    new_head.y = 0;
-                }
-            }
-            Direction::Left => {
-                new_head.x -= 1;
-                if new_head.x < 0 {
-                    new_head.x = storage::get::<GlobalState>().num_columns - 1;
-                }
-            }
-            Direction::Right => {
-                new_head.x += 1;
-                if new_head.x >= storage::get::<GlobalState>().num_columns {
-                    new_head.x = 0;
-                }
-            }
+            Direction::Up => new_head.y -= 1,
+            Direction::Down => new_head.y += 1,
+            Direction::Left => new_head.x -= 1,
+            Direction::Right => new_head.x += 1,
         }
 
         self.links.push_front(new_head);
@@ -97,13 +77,23 @@ impl Snake {
         self.needs_to_grow = false;
     }
 
-    pub fn did_eat_self(&self) -> bool {
+    pub fn did_collide(&self) -> bool {
         let head = self.links[0];
 
+        // check collisions with self
         for link in self.links.iter().skip(1) {
             if head.x == link.x && head.y == link.y {
                 return true;
             }
+        }
+
+        // check collisions with wall
+        if head.x >= storage::get::<GlobalState>().num_columns
+            || head.x < 0
+            || head.y >= storage::get::<GlobalState>().num_rows
+            || head.y < 0
+        {
+            return true;
         }
 
         false

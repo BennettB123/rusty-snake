@@ -75,7 +75,7 @@ async fn main() {
             snake_move_progress = 1.0 - snake_move_progress;
 
             // check for collisions
-            if snake.did_eat_self() {
+            if snake.did_collide() {
                 exit(0); // TODO: losing screen + restart
             }
 
