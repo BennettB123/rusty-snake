@@ -2,7 +2,7 @@ use crate::global_state::GlobalState;
 use macroquad::experimental::collections::storage;
 use macroquad::prelude::*;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Cell {
     pub x: i32,
     pub y: i32,

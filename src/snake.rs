@@ -45,6 +45,16 @@ impl Snake {
         self.links[0]
     }
 
+    pub fn get_all_locations(&self) -> Vec<Cell> {
+        let cell_slices = self.links.as_slices();
+        cell_slices
+            .0
+            .iter()
+            .cloned()
+            .chain(cell_slices.1.iter().cloned())
+            .collect()
+    }
+
     pub fn change_direction(&mut self, new_dir: Direction) {
         if !new_dir.is_opposite(&self.direction) {
             self.direction = new_dir;

@@ -18,12 +18,12 @@ const GLOBAL_STATE: GlobalState = GlobalState {
     game_name: "Rusty Snake",
     screen_width: 1500,
     screen_height: 1500,
-    num_columns: 15,
-    num_rows: 15,
+    num_columns: 12,
+    num_rows: 12,
     draw_grid_padding: 0.005,
 };
 
-const SNAKE_SPEED: f32 = 10.0; // moves per second
+const SNAKE_SPEED: f32 = 8.0; // moves per second
 
 // Movement Keys
 const UP_KEYS: [KeyCode; 3] = [KeyCode::Up, KeyCode::W, KeyCode::K];
@@ -33,7 +33,7 @@ const RIGHT_KEYS: [KeyCode; 3] = [KeyCode::Right, KeyCode::D, KeyCode::L];
 
 #[macroquad::main(get_window_conf())]
 async fn main() {
-    // store this in macroquads global storage so it can be used across modules
+    // store stuff in macroquads global storage so it can be used across modules
     storage::store(GLOBAL_STATE);
 
     let mut input_buffer = InputBuffer::new(5);
@@ -81,7 +81,7 @@ async fn main() {
 
             if did_snake_eat_fruit(&snake, &fruit) {
                 snake.grow();
-                fruit.teleport();
+                fruit.teleport(snake.get_all_locations());
             }
         }
 
