@@ -31,7 +31,8 @@ pub struct Snake {
 }
 
 impl Snake {
-    const COLOR: Color = GREEN;
+    const HEAD_COLOR: Color = GREEN;
+    const BODY_COLOR: Color = LIME;
 
     pub fn new() -> Self {
         Snake {
@@ -69,7 +70,6 @@ impl Snake {
     //   and popping the tail off the back. Do not pop the tail off the back if
     //   the snake needs to grow
     pub fn update(&mut self) {
-        // find new head location
         let mut new_head = Cell::new(self.links[0].x, self.links[0].y);
         match self.direction {
             Direction::Up => new_head.y -= 1,
@@ -90,14 +90,12 @@ impl Snake {
     pub fn did_collide(&self) -> bool {
         let head = self.links[0];
 
-        // check collisions with self
         for link in self.links.iter().skip(1) {
             if head.x == link.x && head.y == link.y {
                 return true;
             }
         }
 
-        // check collisions with wall
         if head.x >= storage::get::<GlobalState>().num_columns
             || head.x < 0
             || head.y >= storage::get::<GlobalState>().num_rows
@@ -110,8 +108,9 @@ impl Snake {
     }
 
     pub fn draw(&self) {
-        for link in &self.links {
-            link.draw(Snake::COLOR);
+        self.links[0].draw(Snake::HEAD_COLOR);
+        for link in self.links.iter().skip(1) {
+            link.draw(Snake::BODY_COLOR);
         }
     }
 }
