@@ -23,7 +23,9 @@ const GLOBAL_STATE: GlobalState = GlobalState {
     draw_grid_padding: 0.005,
 };
 
-const SNAKE_SPEED: f32 = 8.0; // moves per second
+const GRID_LINE_COLOR: Color = Color::new(0.15, 0.15, 0.15, 1.0);
+
+const SNAKE_SPEED: f32 = 6.0; // moves per second
 
 // Movement Keys
 const UP_KEYS: [KeyCode; 3] = [KeyCode::Up, KeyCode::W, KeyCode::K];
@@ -113,4 +115,20 @@ fn did_snake_eat_fruit(snake: &Snake, fruit: &Fruit) -> bool {
     snake_head.x == fruit.location.x && snake_head.y == fruit.location.y
 }
 
-fn draw_grid_lines() {}
+fn draw_grid_lines() {
+    let num_cols = storage::get::<GlobalState>().num_columns;
+    let num_rows = storage::get::<GlobalState>().num_rows;
+    let space_between_cols: f32 = screen_width() / storage::get::<GlobalState>().num_columns as f32;
+    let space_between_rows: f32 = screen_height() / storage::get::<GlobalState>().num_rows as f32;
+    let col_width = screen_width() * 0.0008;
+    let row_width = screen_height() * 0.0008;
+
+    for col in 0..=num_cols {
+        let x = col as f32 * space_between_cols;
+        draw_line(x, 0.0, x, screen_height(), col_width, GRID_LINE_COLOR);
+    }
+    for row in 0..=num_rows {
+        let y = row as f32 * space_between_rows;
+        draw_line(0.0, y, screen_width(), y, row_width, GRID_LINE_COLOR);
+    }
+}
