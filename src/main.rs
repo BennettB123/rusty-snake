@@ -120,15 +120,14 @@ fn draw_grid_lines() {
     let num_rows = storage::get::<GlobalState>().num_rows;
     let space_between_cols: f32 = screen_width() / storage::get::<GlobalState>().num_columns as f32;
     let space_between_rows: f32 = screen_height() / storage::get::<GlobalState>().num_rows as f32;
-    let col_width = screen_width() * 0.0008;
-    let row_width = screen_height() * 0.0008;
+    let line_weight = 2.0;
 
     for col in 0..=num_cols {
         let x = col as f32 * space_between_cols;
-        draw_line(x, 0.0, x, screen_height(), col_width, GRID_LINE_COLOR);
+        draw_line(x, 0.0, x, screen_height(), line_weight, GRID_LINE_COLOR);
     }
     for row in 0..=num_rows {
         let y = row as f32 * space_between_rows;
-        draw_line(0.0, y, screen_width(), y, row_width, GRID_LINE_COLOR);
+        draw_line(0.0, y, screen_width(), y, line_weight, GRID_LINE_COLOR);
     }
 }
